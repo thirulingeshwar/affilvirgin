@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>AffilVirgin | Fee & Attendance Mgmt</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+        }
+
+        :root {
+            --surface: rgba(255, 255, 255, 0.12);
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
+            --border: rgba(255, 255, 255, 0.15);
+            --accent: #e67e22;
+            --accent-hover: #d35400;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            --radius-card: 1.25rem;
+        }
+
+        body.dark {
+            --surface: rgba(0, 0, 0, 0.65);
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.85)), 
+                        url('https://www.engineeringforkids.com/wp-content/uploads/2024/02/jpeg-optimizer_Building-a-Robot-01-scaled-1-1.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .app-container { max-width: 1400px; margin: 0 auto; }
+        
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            background: var(--surface);
+            backdrop-filter: blur(10px);
+            padding: 0.8rem 1.5rem;
+            border-radius: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .logo { display: flex; align-items: center; gap: 0.8rem; }
+        .logo-text h1 {
+            font-size: 1.4rem;
+            background: linear-gradient(135deg, var(--accent), #f39c12);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .nav-links { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .nav-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        .nav-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        .nav-btn:hover:not(.active) {
+            background: rgba(230, 126, 34, 0.15);
+            color: var(--accent);
+        }
+
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .notification-badge {
+            background: var(--danger);
+            color: white;
+            border-radius: 1rem;
+            padding: 0.1rem 0.5rem;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .notification-panel {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            width: 380px;
+            max-height: 450px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: var(--shadow);
+        }
+        .notification-panel.show { display: block; }
+        .notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .notification-item:hover { background: rgba(230, 126, 34, 0.2); }
+        .notification-item.overdue { border-left: 4px solid var(--danger); background: rgba(239, 68, 68, 0.1); }
+        .notification-title { font-weight: bold; font-size: 1rem; margin-bottom: 0.3rem; }
+        .notification-details { font-size: 0.85rem; color: var(--text-secondary); }
+        .pay-now-btn {
+            margin-top: 0.5rem;
+            background: var(--success);
+            border: none;
+            padding: 0.3rem 0.8rem;
+            border-radius: 1rem;
+            color: white;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active-page { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .card {
+            background: var(--surface);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-card);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group { margin-bottom: 1.2rem; }
+        label { display: block; font-weight: 600; margin-bottom: 0.4rem; color: var(--text-secondary); }
+        input, select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-primary);
+            outline: none;
+        }
+        input:focus { border-color: var(--accent); }
+
+        button {
+            background: var(--accent);
+            border: none;
+            padding: 0.7rem 1.3rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        button:hover { background: var(--accent-hover); }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+        }
+        .btn-outline:hover { background: rgba(230, 126, 34, 0.15); }
+
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.2rem; }
+
+        .student-list-item, .record-item {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            border: 1px solid var(--border);
+        }
+        .student-list-item.fee-overdue { border-left: 4px solid var(--danger); background: rgba(239, 68, 68, 0.15); }
+        .student-list-item.fee-due-soon { border-left: 4px solid var(--warning); }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge.present { background: #10b98120; color: #10b981; }
+        .badge.absent { background: #ef444420; color: #ef4444; }
+        .badge.no-class { background: #3b82f620; color: #3b82f6; }
+        .badge.fee-overdue { background: #ef444420; color: #ef4444; }
+        .badge.fee-due-soon { background: #f59e0b20; color: #f59e0b; }
+
+        .status-btn {
+            padding: 0.5rem 1.2rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .status-btn.present { background: var(--success); color: white; }
+        .status-btn.absent { background: var(--danger); color: white; }
+        .status-btn.no-class { background: var(--info); color: white; }
+        .status-btn.selected { 
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3), 0 0 0 4px var(--success);
+            transform: scale(1.02);
+        }
+
+        .timing-section {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 0.8rem;
+            padding-top: 0.8rem;
+            border-top: 1px dashed var(--border);
+        }
+        .timing-input input { width: 120px; padding: 0.4rem 0.6rem; }
+
+        .individual-save-btn {
+            background: linear-gradient(135deg, var(--success), #059669);
+            margin-top: 0.5rem;
+            width: 100%;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+        .day-checkbox {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            cursor: pointer;
+        }
+
+        .action-group { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .icon-btn {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .icon-btn:hover { background: rgba(230, 126, 34, 0.3); }
+
+        .stats-number { font-size: 2rem; font-weight: 800; }
+        .search-bar { display: flex; gap: 0.8rem; margin-bottom: 1.2rem; }
+        .search-bar input { flex: 1; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .close-modal {
+            cursor: pointer;
+            font-size: 1.5rem;
+            background: none;
+            padding: 0;
+            color: var(--text-secondary);
+        }
+        .close-modal:hover {
+            color: var(--danger);
+            background: none;
+        }
+
+        .attendance-stats {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 1rem;
+            justify-content: space-around;
+        }
+        .stat-badge {
+            text-align: center;
+            padding: 0.3rem 0.8rem;
+            border-radius: 1rem;
+        }
+        
+        .credit-footer {
+            text-align: center;
+            font-size: 0.8rem;
+            margin-top: 2rem;
+            padding: 0.8rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 640px) {
+            .top-bar { flex-direction: column; text-align: center; }
+            .days-grid { grid-template-columns: repeat(4, 1fr); }
+            .status-btn { padding: 0.3rem 0.8rem; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="top-bar">
+        <div class="logo">
+            <div class="logo-text">
+                <h1>📖 AffilVirgin</h1>
+                <p>Fee & Attendance Management System made by :K.Thirulingeshwar</p>
+            </div>
+        </div>
+        <div class="nav-links">
+            <button class="nav-btn" data-page="dashboard">📊 Dashboard</button>
+            <button class="nav-btn" data-page="addStudent">➕ Add Student</button>
+            <button class="nav-btn" data-page="attendance">✅ Mark Attendance</button>
+            <button class="nav-btn" data-page="records">📜 Records</button>
+            <button class="nav-btn" data-page="feeManagement">💰 Fee Management</button>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <div class="notification-bell" id="notificationBell">
+                🔔 Notifications
+                <span class="notification-badge" id="notificationCount">0</span>
+            </div>
+            <span class="sync-status" id="syncStatus">🟢 Connected</span>
+            <button class="dark-toggle" id="darkModeToggle">🌙 Dark Mode</button>
+        </div>
+    </div>
+
+    <div class="notification-panel" id="notificationPanel">
+        <div style="padding: 0.8rem; font-weight: bold; border-bottom: 1px solid var(--border);">⚠️ Fee Alerts & Reminders</div>
+        <div id="notificationList"></div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboardPage" class="page">
+        <div class="card">
+            <h2>📈 Dashboard Overview</h2>
+            <div class="grid-2" style="margin-top: 1rem;">
+                <div class="stats-card"><h3>👩‍🎓 Total Students</h3><p class="stats-number" id="totalStudentsCount">0</p></div>
+                <div class="stats-card"><h3>💰 Overdue Fees</h3><p class="stats-number" id="totalPendingFees">₹0</p><small>students need to pay</small></div>
+                <div class="stats-card"><h3>📆 Today's Attendance</h3><p class="stats-number" id="todayAttendanceCount">0</p><small id="todayPercentage">0% present</small></div>
+            </div>
+            <div style="margin-top: 1.5rem;">
+                <h3>📊 Overall Attendance Rate</h3>
+                <div class="progress-bar-container"><div id="overallProgressBar" style="width:0%;height:12px;background:var(--accent);border-radius:1rem;"></div></div>
+                <p id="overallPercentText" style="margin-top: 0.5rem;">0% overall attendance</p>
+            </div>
+        </div>
+        <div class="card"><h3>⭐ Recent Attendance</h3><div id="recentAttendanceList"></div></div>
+    </div>
+
+    <!-- Add Student Page -->
+    <div id="addStudentPage" class="page">
+        <div class="card">
+            <h2>➕ Register New Student</h2>
+            <form id="studentForm">
+                <div class="form-group"><label>Student Name *</label><input type="text" id="studentName" required></div>
+                <div class="form-group"><label>Branch</label><input type="text" id="studentBranch"></div>
+                <div class="form-group"><label>Class</label><input type="text" id="studentClass"></div>
+                <div class="form-group"><label>Working Days</label>
+                    <div class="days-grid">
+                        <label class="day-checkbox"><input type="checkbox" value="Monday"> Mon</label>
+                        <label class="day-checkbox"><input type="checkbox" value="Tuesday"> Tue</label>
+                        <label class="day-checkbox"><input type="checkbox" value="Wednesday"> Wed</label>
+                        <label class="day-checkbox"><input type="checkbox" value="Thursday"> Thu</label>
+                        <label class="day-checkbox"><input type="checkbox" value="Friday"> Fri</label>
+                        <label class="day-checkbox"><input type="checkbox" value="Saturday"> Sat</label>
+                        <label class="day-checkbox"><input type="checkbox" value="Sunday"> Sun</label>
+                    </div>
+                </div>
+                <div class="form-group"><label>Default In Time</label><input type="time" id="defaultInTime" value="09:00"></div>
+                <div class="form-group"><label>Default Out Time</label><input type="time" id="defaultOutTime" value="17:00"></div>
+                <div class="form-group"><label>Phone Number</label><input type="tel" id="phone"></div>
+                <div class="form-group"><label>💰 Monthly Fee Amount (₹)</label><input type="number" id="feeAmount" placeholder="e.g., 2500" value="2500"></div>
+                <div class="form-group"><label>📅 Fee Due Date (Day of Month)</label><input type="number" id="feeDueDay" placeholder="e.g., 15" value="15" min="1" max="31"></div>
+                <button type="submit">💾 Save Student with Fee Details</button>
+            </form>
+        </div>
+        <div class="card">
+            <h3>📋 Students List</h3>
+            <div class="search-bar"><input type="text" id="studentSearchInput" placeholder="🔍 Search by name"></div>
+            <div id="studentsListContainer"></div>
+        </div>
+    </div>
+
+    <!-- Fee Management Page -->
+    <div id="feeManagementPage" class="page">
+        <div class="card">
+            <h2>💰 Fee Management</h2>
+            <p>🔴 <strong style="color:var(--danger);">Red border</strong> = Overdue | 🟡 <strong style="color:var(--warning);">Yellow border</strong> = Due within 5 days</p>
+            <div class="search-bar"><input type="text" id="feeSearchInput" placeholder="🔍 Search student"></div>
+            <div id="feeStudentsList"></div>
+        </div>
+    </div>
+
+    <!-- Attendance Page -->
+    <div id="attendancePage" class="page">
+        <div class="card">
+            <h2>✅ Mark Attendance</h2>
+            <p style="margin-bottom: 1rem;">📌 <strong>Status Options:</strong> 
+                <span style="background:var(--success); padding:0.2rem 0.5rem; border-radius:0.5rem;">✅ Present</span> 
+                <span style="background:var(--danger); padding:0.2rem 0.5rem; border-radius:0.5rem;">❌ Absent</span> 
+                <span style="background:var(--info); padding:0.2rem 0.5rem; border-radius:0.5rem;">📚 No Class</span>
+            </p>
+            <div class="search-bar"><input type="text" id="attendanceSearch" placeholder="🔍 Filter students"></div>
+            <div id="studentsAttendanceList"></div>
+        </div>
+    </div>
+
+    <!-- Records Page -->
+    <div id="recordsPage" class="page">
+        <div class="card">
+            <h2>📋 Attendance History</h2>
+            <div class="search-bar"><input type="text" id="recordsSearchInput" placeholder="Search by name or date"></div>
+            <div id="allRecordsContainer"></div>
+        </div>
+    </div>
+    
+    <div class="credit-footer">
+        🚀 System Developed by <strong>Thirulingeshwar</strong> | © 2026 AffilVirgin
+    </div>
+</div>
+
+<!-- Edit Student Modal -->
+<div id="editStudentModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>✏️ Edit Student Details</h3>
+            <span class="close-modal" onclick="closeEditModal()">&times;</span>
+        </div>
+        <form id="editStudentForm">
+            <input type="hidden" id="editStudentId">
+            <div class="form-group"><label>Student Name *</label><input type="text" id="editStudentName" required></div>
+            <div class="form-group"><label>Branch</label><input type="text" id="editStudentBranch"></div>
+            <div class="form-group"><label>Class</label><input type="text" id="editStudentClass"></div>
+            <div class="form-group"><label>Phone Number</label><input type="tel" id="editStudentPhone"></div>
+            <div class="form-group"><label>Default In Time</label><input type="time" id="editInTime"></div>
+            <div class="form-group"><label>Default Out Time</label><input type="time" id="editOutTime"></div>
+            <div class="form-group"><label>💰 Monthly Fee Amount (₹)</label><input type="number" id="editFeeAmount"></div>
+            <div class="form-group"><label>📅 Fee Due Date (Day of Month)</label><input type="number" id="editFeeDueDay" min="1" max="31"></div>
+            <button type="submit">💾 Update Student</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const API_BASE = '';
+    let students = [];
+    let attendanceRecords = [];
+    let currentAttendanceSelections = {};
+
+    function getFeeStatus(student) {
+        if (!student.feeAmount || !student.feeDueDay) {
+            return { status: 'not_set', message: 'Not set', daysOverdue: 0, color: 'gray' };
+        }
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
+        const currentMonthStr = `${currentYear}-${currentMonth + 1}`;
+        if (student.feePaidForMonth === currentMonthStr) {
+            return { status: 'paid', message: '✅ Paid for this month', daysOverdue: 0, color: 'green' };
+        }
+        let dueDate = new Date(currentYear, currentMonth, student.feeDueDay);
+        if (dueDate < today && dueDate.getMonth() === currentMonth) {
+            dueDate = new Date(currentYear, currentMonth + 1, student.feeDueDay);
+        }
+        const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+        if (daysUntilDue < 0) {
+            return { status: 'overdue', message: `⚠️ OVERDUE by ${Math.abs(daysUntilDue)} days! Amount: ₹${student.feeAmount}`, daysOverdue: Math.abs(daysUntilDue), color: 'red' };
+        }
+        if (daysUntilDue <= 5) {
+            return { status: 'due_soon', message: `⏰ Due in ${daysUntilDue} days - ₹${student.feeAmount}`, daysOverdue: 0, color: 'orange' };
+        }
+        return { status: 'upcoming', message: `📅 Due on ${student.feeDueDay}th - ₹${student.feeAmount}`, daysOverdue: 0, color: 'green' };
+    }
+
+    function updateNotifications() {
+        const overdueStudents = students.filter(s => getFeeStatus(s).status === 'overdue');
+        const dueSoonStudents = students.filter(s => getFeeStatus(s).status === 'due_soon');
+        const totalNotifications = overdueStudents.length + dueSoonStudents.length;
+        document.getElementById('notificationCount').innerText = totalNotifications;
+        const notificationList = document.getElementById('notificationList');
+        let html = '';
+        if (overdueStudents.length > 0) {
+            html += `<div style="padding: 0.5rem; background: rgba(239,68,68,0.2); font-weight: bold;">🔴 OVERDUE (${overdueStudents.length})</div>`;
+            overdueStudents.forEach(s => {
+                const status = getFeeStatus(s);
+                html += `<div class="notification-item overdue" data-id="${s.id}"><div class="notification-title">⚠️ ${escapeHtml(s.name)}</div><div class="notification-details">${status.message}</div><div class="notification-details">📞 Phone: ${s.phone || 'Not provided'}</div><button class="pay-now-btn" onclick="event.stopPropagation(); markFeeAsPaid('${s.id}')">💰 Mark as Paid</button></div>`;
+            });
+        }
+        if (dueSoonStudents.length > 0) {
+            html += `<div style="padding: 0.5rem; background: rgba(245,158,11,0.2); font-weight: bold;">🟡 DUE SOON (${dueSoonStudents.length})</div>`;
+            dueSoonStudents.forEach(s => {
+                const status = getFeeStatus(s);
+                html += `<div class="notification-item" data-id="${s.id}"><div class="notification-title">⏰ ${escapeHtml(s.name)}</div><div class="notification-details">${status.message}</div><div class="notification-details">Due date: ${s.feeDueDay}th of month</div><button class="pay-now-btn" onclick="event.stopPropagation(); markFeeAsPaid('${s.id}')">💰 Mark as Paid</button></div>`;
+            });
+        }
+        if (totalNotifications === 0) html = '<div style="padding: 1rem; text-align: center;">✅ All fees are up to date!</div>';
+        notificationList.innerHTML = html;
+        const pendingSum = overdueStudents.reduce((sum, s) => sum + (s.feeAmount || 0), 0);
+        document.getElementById('totalPendingFees').innerHTML = `₹${pendingSum}`;
+        const bell = document.getElementById('notificationBell');
+        bell.style.animation = totalNotifications > 0 ? 'shake 0.5s ease infinite' : 'none';
+    }
+
+    async function markFeeAsPaid(studentId) {
+        const student = students.find(s => s.id === studentId);
+        if (!student) return;
+        const today = new Date();
+        const paidForMonth = `${today.getFullYear()}-${today.getMonth() + 1}`;
+        const monthName = today.toLocaleString('default', { month: 'long' });
+        if (confirm(`Mark fee as PAID for ${student.name} for ${monthName} ${today.getFullYear()}?\nAmount: ₹${student.feeAmount}`)) {
+            try {
+                await fetch(`${API_BASE}/api/students/${studentId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ feePaidForMonth: paidForMonth, lastFeePaidDate: new Date().toISOString() }) });
+                await loadStudents();
+                showToast(`✅ Fee marked as paid for ${student.name}`);
+            } catch (error) { showToast('❌ Error updating fee status'); }
+        }
+    }
+
+    function openEditModal(studentId) {
+        const student = students.find(s => s.id === studentId);
+        if (!student) return;
+        document.getElementById('editStudentId').value = student.id;
+        document.getElementById('editStudentName').value = student.name || '';
+        document.getElementById('editStudentBranch').value = student.branch || '';
+        document.getElementById('editStudentClass').value = student.class || '';
+        document.getElementById('editStudentPhone').value = student.phone || '';
+        document.getElementById('editInTime').value = student.inTime || '09:00';
+        document.getElementById('editOutTime').value = student.outTime || '17:00';
+        document.getElementById('editFeeAmount').value = student.feeAmount || 2500;
+        document.getElementById('editFeeDueDay').value = student.feeDueDay || 15;
+        document.getElementById('editStudentModal').style.display = 'flex';
+    }
+    
+    function closeEditModal() { document.getElementById('editStudentModal').style.display = 'none'; }
+    
+    async function updateStudentFromEdit() {
+        const studentId = document.getElementById('editStudentId').value;
+        const updateData = {
+            name: document.getElementById('editStudentName').value.trim(),
+            branch: document.getElementById('editStudentBranch').value.trim(),
+            class: document.getElementById('editStudentClass').value.trim(),
+            phone: document.getElementById('editStudentPhone').value.trim(),
+            inTime: document.getElementById('editInTime').value,
+            outTime: document.getElementById('editOutTime').value,
+            feeAmount: parseInt(document.getElementById('editFeeAmount').value) || 2500,
+            feeDueDay: parseInt(document.getElementById('editFeeDueDay').value) || 15
+        };
+        if (!updateData.name) { showToast('❌ Student name is required'); return; }
+        try {
+            const response = await fetch(`${API_BASE}/api/students/${studentId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updateData) });
+            if (response.ok) { await loadStudents(); showToast('✅ Student updated successfully!'); closeEditModal(); }
+            else showToast('❌ Failed to update student');
+        } catch (error) { showToast('❌ Error updating student'); }
+    }
+
+    async function loadStudents() {
+        try { const response = await fetch(`${API_BASE}/api/students`); students = await response.json(); updateNotifications(); renderAll(); } 
+        catch (error) { console.error('Error loading students:', error); }
+    }
+
+    async function loadAttendance() {
+        try { const response = await fetch(`${API_BASE}/api/attendance`); attendanceRecords = await response.json(); renderAll(); } 
+        catch (error) { console.error('Error loading attendance:', error); }
+    }
+
+    async function addStudentToDB(student) {
+        try {
+            const response = await fetch(`${API_BASE}/api/students`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(student) });
+            if (response.ok) { await loadStudents(); showToast(`✅ Student "${student.name}" added successfully!`); document.getElementById('studentForm').reset(); document.querySelectorAll('#addStudentPage .day-checkbox input').forEach(cb => cb.checked = false); }
+        } catch (error) { showToast('❌ Failed to add student'); }
+    }
+
+    async function deleteStudentFromDB(id) {
+        const student = students.find(s => s.id === id);
+        if (!confirm(`Delete "${student?.name}" and all records?`)) return;
+        try { await fetch(`${API_BASE}/api/students/${id}`, { method: 'DELETE' }); await loadStudents(); await loadAttendance(); showToast(`✅ ${student.name} deleted`); } 
+        catch (error) { showToast('❌ Delete failed'); }
+    }
+
+    async function saveIndividualAttendance(studentId) {
+        const student = students.find(s => s.id === studentId);
+        if (!student) return;
+        const selection = currentAttendanceSelections[studentId];
+        if (!selection || !selection.status) { showToast(`❌ Please select Present/Absent/No Class for ${student.name}`); return; }
+        const attendanceData = [{ studentId: student.id, studentName: student.name, class: student.class || '', branch: student.branch || '', status: selection.status, inTime: selection.inTime || student.inTime || '09:00', outTime: selection.outTime || student.outTime || '17:00', date: selection.date || new Date().toISOString().slice(0,10) }];
+        try {
+            await fetch('/api/attendance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ attendance: attendanceData }) });
+            await loadAttendance();
+            delete currentAttendanceSelections[studentId];
+            showToast(`✅ ${student.name}'s attendance saved!`);
+            renderAttendancePageList();
+        } catch (error) { showToast(`❌ Failed to save attendance`); }
+    }
+
+    async function deleteAttendanceRecord(recordId) {
+        if (!confirm('Delete this record?')) return;
+        try { await fetch(`/api/attendance/${recordId}`, { method: 'DELETE' }); await loadAttendance(); showToast('Record deleted!'); } 
+        catch (error) { showToast('Failed to delete'); }
+    }
+
+    function showToast(msg) {
+        const toast = document.createElement('div');
+        toast.textContent = msg;
+        toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:0.75rem 1.5rem;border-radius:2rem;z-index:2000;font-weight:500';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+
+    function renderStudentList(filter = "") { /* same functional rendering but truncated for brevity – kept full logic originally, but will keep core */ 
+        const container = document.getElementById('studentsListContainer');
+        if (!container) return;
+        let filtered = students.filter(s => s.name.toLowerCase().includes(filter.toLowerCase()));
+        if (filtered.length === 0) { container.innerHTML = `<div class="empty-state">👀 No students found</div>`; return; }
+        container.innerHTML = filtered.map(s => { const feeStatus = getFeeStatus(s); const overdueClass = feeStatus.status === 'overdue' ? 'fee-overdue' : (feeStatus.status === 'due_soon' ? 'fee-due-soon' : ''); return `<div class="student-list-item ${overdueClass}"><div><h4>🙏 ${escapeHtml(s.name)} <span>${escapeHtml(s.branch || '—')}</span></h4><p>📚 ${escapeHtml(s.class || '—')} | 📞 ${escapeHtml(s.phone || '—')}</p><p>⏰ In: ${s.inTime || '09:00'} | Out: ${s.outTime || '17:00'}</p><p class="fee-status" style="color: ${feeStatus.color === 'red' ? '#ef4444' : (feeStatus.color === 'orange' ? '#f59e0b' : '#10b981')}">💰 ${feeStatus.message}</p></div><div class="action-group"><button class="icon-btn edit-student" data-id="${s.id}" style="background:var(--accent);">✏️ Edit</button><button class="icon-btn delete-student" data-id="${s.id}">🗑️ Delete</button>${feeStatus.status !== 'paid' ? `<button class="icon-btn pay-fee" data-id="${s.id}" style="background:var(--success);">💰 Pay Fee</button>` : '<button class="icon-btn" disabled style="opacity:0.5;">✅ Paid</button>'}</div></div>`; }).join('');
+        document.querySelectorAll('.edit-student').forEach(btn => btn.addEventListener('click', () => openEditModal(btn.dataset.id)));
+        document.querySelectorAll('.delete-student').forEach(btn => btn.addEventListener('click', () => deleteStudentFromDB(btn.dataset.id)));
+        document.querySelectorAll('.pay-fee').forEach(btn => btn.addEventListener('click', () => markFeeAsPaid(btn.dataset.id)));
+    }
+
+    function renderFeeManagementList() { /* simplified */ const container = document.getElementById('feeStudentsList'); if(!container) return; const searchTerm = document.getElementById('feeSearchInput')?.value.toLowerCase() || ""; let filtered = students.filter(s => s.name.toLowerCase().includes(searchTerm)); if(filtered.length===0){container.innerHTML='<div class="empty-state">No students</div>';return;} container.innerHTML=filtered.map(s=>{const fs=getFeeStatus(s);return `<div class="student-list-item ${fs.status==='overdue'?'fee-overdue':(fs.status==='due_soon'?'fee-due-soon':'')}"><div><h4>🙏 ${escapeHtml(s.name)}</h4><p>💰 Amount: ₹${s.feeAmount||'Not set'} | Due: ${s.feeDueDay}th</p><p>${fs.message}</p></div><div><button class="icon-btn edit-student-fee" data-id="${s.id}">✏️ Edit</button>${fs.status!=='paid'?`<button class="pay-fee-btn" data-id="${s.id}" style="background:var(--success);">💰 Mark Paid</button>`:'<button disabled>✅ Paid</button>'}</div></div>`;}).join(''); document.querySelectorAll('.edit-student-fee').forEach(btn=>btn.addEventListener('click',()=>openEditModal(btn.dataset.id))); document.querySelectorAll('.pay-fee-btn').forEach(btn=>btn.addEventListener('click',()=>markFeeAsPaid(btn.dataset.id)));}
+    function renderAttendancePageList() { const container = document.getElementById('studentsAttendanceList'); if(!container) return; const searchTerm = document.getElementById('attendanceSearch')?.value.toLowerCase()||""; let filtered = students.filter(s=>s.name.toLowerCase().includes(searchTerm)); if(filtered.length===0){container.innerHTML='<div class="empty-state">No students</div>';return;} container.innerHTML=filtered.map(s=>{const sel=currentAttendanceSelections[s.id]||{status:"Present",inTime:s.inTime||'09:00',outTime:s.outTime||'17:00',date:new Date().toISOString().slice(0,10)};return `<div class="attendance-card" style="background:rgba(0,0,0,0.4);border-radius:1rem;padding:1rem;margin-bottom:1rem;"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;"><div><h3>🙏 ${escapeHtml(s.name)}</h3></div><div><button class="status-btn present ${sel.status==='Present'?'selected':''}" data-id="${s.id}" data-status="Present">✅ Present</button><button class="status-btn absent ${sel.status==='Absent'?'selected':''}" data-id="${s.id}" data-status="Absent">❌ Absent</button><button class="status-btn no-class ${sel.status==='No Class'?'selected':''}" data-id="${s.id}" data-status="No Class">📚 No Class</button></div></div><div class="timing-section"><input type="date" id="date_${s.id}" value="${sel.date}" class="date-input"><input type="time" id="inTime_${s.id}" value="${sel.inTime}" class="in-time-input"><input type="time" id="outTime_${s.id}" value="${sel.outTime}" class="out-time-input"></div><button class="individual-save-btn" data-id="${s.id}">💾 Save ${escapeHtml(s.name)}'s Attendance</button></div>`;}).join(''); document.querySelectorAll('.status-btn').forEach(btn=>btn.addEventListener('click',()=>{currentAttendanceSelections[btn.dataset.id]={...currentAttendanceSelections[btn.dataset.id],status:btn.dataset.status};renderAttendancePageList();})); document.querySelectorAll('.date-input').forEach(inp=>inp.addEventListener('change',e=>{const sid=e.target.id.replace('date_','');currentAttendanceSelections[sid]={...currentAttendanceSelections[sid],date:e.target.value};})); document.querySelectorAll('.in-time-input').forEach(inp=>inp.addEventListener('change',e=>{const sid=e.target.id.replace('inTime_','');currentAttendanceSelections[sid]={...currentAttendanceSelections[sid],inTime:e.target.value};})); document.querySelectorAll('.out-time-input').forEach(inp=>inp.addEventListener('change',e=>{const sid=e.target.id.replace('outTime_','');currentAttendanceSelections[sid]={...currentAttendanceSelections[sid],outTime:e.target.value};})); document.querySelectorAll('.individual-save-btn').forEach(btn=>btn.addEventListener('click',()=>saveIndividualAttendance(btn.dataset.id)));}
+    function renderRecordsPage(filter=""){const container=document.getElementById('allRecordsContainer');if(!container)return;let records=[...attendanceRecords].sort((a,b)=>new Date(b.date)-new Date(a.date));if(filter)records=records.filter(r=>r.studentName.toLowerCase().includes(filter.toLowerCase())||(r.date&&r.date.includes(filter)));if(records.length===0){container.innerHTML='<div class="empty-state">📭 No records</div>';return;}container.innerHTML=records.map(rec=>`<div class="record-item"><div><h4>🙏 ${escapeHtml(rec.studentName)}</h4><div>📅 ${rec.date} | 🟢 In: ${rec.inTime||'—'} | 🔴 Out: ${rec.outTime||'—'}</div></div><div><span class="badge ${rec.status==='Present'?'present':(rec.status==='Absent'?'absent':'no-class')}">${rec.status}</span><button class="icon-btn delete-attendance" data-id="${rec.id}">🗑️ Delete</button></div></div>`).join('');document.querySelectorAll('.delete-attendance').forEach(btn=>btn.addEventListener('click',()=>deleteAttendanceRecord(btn.dataset.id)));}
+    function updateDashboardStats(){document.getElementById('totalStudentsCount').innerText=students.length;const today=new Date().toISOString().slice(0,10);const todayRecords=attendanceRecords.filter(r=>r.date===today);const presentToday=todayRecords.filter(r=>r.status==="Present").length;document.getElementById('todayAttendanceCount').innerHTML=todayRecords.length?`${presentToday}/${todayRecords.length}`:"0/0";const totalPresent=attendanceRecords.filter(r=>r.status==="Present").length;const overallPercent=attendanceRecords.length?(totalPresent/attendanceRecords.length*100).toFixed(1):0;document.getElementById('overallPercentText').innerHTML=`${overallPercent}% overall (${totalPresent}/${attendanceRecords.length})`;document.getElementById('overallProgressBar').style.width=`${overallPercent}%`;const recent=[...attendanceRecords].slice(-5).reverse();const recentDiv=document.getElementById('recentAttendanceList');if(recentDiv)recentDiv.innerHTML=recent.map(r=>`<div style="padding:0.5rem 0;border-bottom:1px solid var(--border);">📌 ${r.studentName} - ${r.date} | <strong class="badge ${r.status==='Present'?'present':(r.status==='Absent'?'absent':'no-class')}">${r.status}</strong></div>`).join('')||"<div class='empty-state'>No records</div>";}
+    function renderAll(){renderStudentList(document.getElementById('studentSearchInput')?.value||"");renderFeeManagementList();renderAttendancePageList();renderRecordsPage(document.getElementById('recordsSearchInput')?.value||"");updateDashboardStats();}
+    document.getElementById('studentForm')?.addEventListener('submit',async(e)=>{e.preventDefault();const name=document.getElementById('studentName').value.trim();if(!name){alert("Name required");return;}const days=[...document.querySelectorAll('#addStudentPage .day-checkbox input:checked')].map(cb=>cb.value);await addStudentToDB({name,branch:document.getElementById('studentBranch').value.trim(),class:document.getElementById('studentClass').value.trim(),days:days,inTime:document.getElementById('defaultInTime').value,outTime:document.getElementById('defaultOutTime').value,phone:document.getElementById('phone').value.trim(),feeAmount:parseInt(document.getElementById('feeAmount').value)||2500,feeDueDay:parseInt(document.getElementById('feeDueDay').value)||15,feePaidForMonth:null,lastFeePaidDate:null});});
+    document.getElementById('editStudentForm')?.addEventListener('submit',async(e)=>{e.preventDefault();await updateStudentFromEdit();});
+    document.getElementById('notificationBell')?.addEventListener('click',()=>{document.getElementById('notificationPanel').classList.toggle('show');});
+    document.addEventListener('click',(e)=>{if(!e.target.closest('.notification-bell')&&!e.target.closest('.notification-panel'))document.getElementById('notificationPanel').classList.remove('show');});
+    document.getElementById('studentSearchInput')?.addEventListener('input',(e)=>renderStudentList(e.target.value));
+    document.getElementById('feeSearchInput')?.addEventListener('input',()=>renderFeeManagementList());
+    document.getElementById('attendanceSearch')?.addEventListener('input',()=>renderAttendancePageList());
+    document.getElementById('recordsSearchInput')?.addEventListener('input',(e)=>renderRecordsPage(e.target.value));
+    const pages=['dashboardPage','addStudentPage','attendancePage','recordsPage','feeManagementPage'];
+    document.querySelectorAll('.nav-btn').forEach(btn=>{btn.addEventListener('click',()=>{const pageId=btn.dataset.page+'Page';pages.forEach(p=>document.getElementById(p).classList.remove('active-page'));document.getElementById(pageId).classList.add('active-page');document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(pageId==='feeManagementPage')renderFeeManagementList();if(pageId==='dashboardPage')updateDashboardStats();});});
+    const darkToggle=document.getElementById('darkModeToggle');darkToggle?.addEventListener('click',()=>{document.body.classList.toggle('dark');localStorage.setItem('dark_mode',document.body.classList.contains('dark'));darkToggle.textContent=document.body.classList.contains('dark')?'☀️ Light Mode':'🌙 Dark Mode';}); if(localStorage.getItem('dark_mode')==='true')document.body.classList.add('dark');
+    window.onclick=function(event){const modal=document.getElementById('editStudentModal');if(event.target===modal)closeEditModal();}
+    loadStudents();loadAttendance();document.querySelector('.nav-btn[data-page="dashboard"]').click();
+    const style=document.createElement('style');style.textContent=`@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-3px);}75%{transform:translateX(3px);}}.progress-bar-container{background:rgba(0,0,0,0.4);border-radius:1rem;height:12px;overflow:hidden;}.empty-state{text-align:center;padding:2rem;color:var(--text-secondary);}`;document.head.appendChild(style);
+</script>
+</body>
+</html>
