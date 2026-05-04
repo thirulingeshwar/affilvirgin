@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Subbulakshmi Venkatesan | Fee & Attendance Mgmt</title>
+    <title>Affilvirgin | Fee & Attendance Mgmt</title>
     <style>
         * {
             margin: 0;
@@ -35,9 +35,15 @@
             color: var(--text-primary);
             min-height: 100vh;
             padding: 1rem;
+            display: flex;
+            flex-direction: column;
         }
 
-        .app-container { max-width: 1400px; margin: 0 auto; }
+        .app-container { 
+            max-width: 1400px; 
+            margin: 0 auto;
+            flex: 1;
+        }
         
         .top-bar {
             display: flex;
@@ -310,14 +316,6 @@
             color: white;
             border-color: var(--accent);
         }
-        .search-type-badge {
-            display: inline-block;
-            background: var(--accent);
-            padding: 0.2rem 0.6rem;
-            border-radius: 1rem;
-            font-size: 0.7rem;
-            margin-left: 0.5rem;
-        }
 
         .progress-bar-container {
             background: rgba(0, 0, 0, 0.4);
@@ -419,6 +417,34 @@
             margin-top: 1rem;
             padding-top: 1rem;
             border-top: 1px solid var(--border);
+        }
+
+        /* Footer Styles */
+        .footer {
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            background: var(--surface);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .footer .heart {
+            color: var(--danger);
+            display: inline-block;
+            animation: heartbeat 1.5s ease infinite;
+        }
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
         }
 
         @media (max-width: 640px) {
@@ -574,6 +600,11 @@
     </div>
 </div>
 
+<!-- Footer -->
+<div class="footer">
+    <p>Made with <span class="heart">❤️</span> by <strong>Thirulingeshwar</strong> | © 2024 Affilvirgin Attendance System</p>
+</div>
+
 <!-- View Student Details Modal -->
 <div id="viewStudentModal" class="modal">
     <div class="modal-content">
@@ -640,38 +671,20 @@
         return { status: 'upcoming', message: `📅 Due on ${student.feeDueDay}th - ₹${student.feeAmount}`, daysOverdue: 0, color: 'green' };
     }
 
-    // Enhanced search function for dashboard
     function filterStudentsBySearch(studentsList, searchTerm, filterType) {
         if (!searchTerm.trim() && filterType === 'all') return studentsList;
-        
         const term = searchTerm.toLowerCase().trim();
-        
         return studentsList.filter(student => {
-            // Filter by type first (fee status filters)
-            if (filterType === 'feeoverdue') {
-                return getFeeStatus(student).status === 'overdue';
-            }
-            if (filterType === 'feepaid') {
-                return getFeeStatus(student).status === 'paid';
-            }
-            
-            // If no search term and filter is not all, return all
+            if (filterType === 'feeoverdue') return getFeeStatus(student).status === 'overdue';
+            if (filterType === 'feepaid') return getFeeStatus(student).status === 'paid';
             if (!term && filterType !== 'all') return true;
             if (!term) return true;
-            
-            // Search by selected filter type
             switch(filterType) {
-                case 'name':
-                    return student.name.toLowerCase().includes(term);
-                case 'branch':
-                    return student.branch && student.branch.toLowerCase().includes(term);
-                case 'class':
-                    return student.class && student.class.toLowerCase().includes(term);
-                case 'workingday':
-                    return student.days && student.days.some(day => day.toLowerCase().includes(term));
-                case 'all':
-                default:
-                    return student.name.toLowerCase().includes(term) ||
+                case 'name': return student.name.toLowerCase().includes(term);
+                case 'branch': return student.branch && student.branch.toLowerCase().includes(term);
+                case 'class': return student.class && student.class.toLowerCase().includes(term);
+                case 'workingday': return student.days && student.days.some(day => day.toLowerCase().includes(term));
+                default: return student.name.toLowerCase().includes(term) ||
                            (student.branch && student.branch.toLowerCase().includes(term)) ||
                            (student.class && student.class.toLowerCase().includes(term)) ||
                            (student.days && student.days.some(day => day.toLowerCase().includes(term)));
@@ -682,35 +695,16 @@
     function renderDashboardSearchResults() {
         const container = document.getElementById('dashboardSearchResults');
         if (!container) return;
-        
         const filtered = filterStudentsBySearch(students, currentSearchTerm, currentFilter);
-        
         if (filtered.length === 0) {
             container.innerHTML = `<div class="empty-state">🔍 No students found matching "${currentSearchTerm || currentFilter}"</div>`;
             return;
         }
-        
         container.innerHTML = filtered.map(s => {
             const feeStatus = getFeeStatus(s);
             const overdueClass = feeStatus.status === 'overdue' ? 'fee-overdue' : (feeStatus.status === 'due_soon' ? 'fee-due-soon' : '');
-            return `
-                <div class="student-list-item ${overdueClass}">
-                    <div>
-                        <h4>🙏 ${escapeHtml(s.name)} <span class="branch-badge">${escapeHtml(s.branch || '—')}</span></h4>
-                        <p>📚 ${escapeHtml(s.class || '—')} | 📞 ${escapeHtml(s.phone || '—')}</p>
-                        <p>📅 Working Days: ${s.days && s.days.length ? s.days.join(', ') : 'Not set'}</p>
-                        <p>⏰ In: ${s.inTime || '09:00'} | Out: ${s.outTime || '17:00'}</p>
-                        <p class="fee-status" style="color: ${feeStatus.color === 'red' ? '#ef4444' : (feeStatus.color === 'orange' ? '#f59e0b' : '#10b981')}">💰 ${feeStatus.message}</p>
-                    </div>
-                    <div class="action-group">
-                        <button class="icon-btn view-student-dash" data-id="${s.id}" style="background:var(--info);">👁️ View</button>
-                        <button class="icon-btn edit-student-dash" data-id="${s.id}" style="background:var(--accent);">✏️ Edit</button>
-                        ${feeStatus.status !== 'paid' ? `<button class="icon-btn pay-fee-dash" data-id="${s.id}" style="background:var(--success);">💰 Pay Fee</button>` : '<button class="icon-btn" disabled style="opacity:0.5;">✅ Paid</button>'}
-                    </div>
-                </div>
-            `;
+            return `<div class="student-list-item ${overdueClass}"><div><h4>🙏 ${escapeHtml(s.name)} <span class="branch-badge">${escapeHtml(s.branch || '—')}</span></h4><p>📚 ${escapeHtml(s.class || '—')} | 📞 ${escapeHtml(s.phone || '—')}</p><p>📅 Working Days: ${s.days && s.days.length ? s.days.join(', ') : 'Not set'}</p><p>⏰ In: ${s.inTime || '09:00'} | Out: ${s.outTime || '17:00'}</p><p class="fee-status" style="color: ${feeStatus.color === 'red' ? '#ef4444' : (feeStatus.color === 'orange' ? '#f59e0b' : '#10b981')}">💰 ${feeStatus.message}</p></div><div class="action-group"><button class="icon-btn view-student-dash" data-id="${s.id}" style="background:var(--info);">👁️ View</button><button class="icon-btn edit-student-dash" data-id="${s.id}" style="background:var(--accent);">✏️ Edit</button>${feeStatus.status !== 'paid' ? `<button class="icon-btn pay-fee-dash" data-id="${s.id}" style="background:var(--success);">💰 Pay Fee</button>` : '<button class="icon-btn" disabled style="opacity:0.5;">✅ Paid</button>'}</div></div>`;
         }).join('');
-        
         document.querySelectorAll('.view-student-dash').forEach(btn => btn.addEventListener('click', () => showStudentDetails(btn.dataset.id)));
         document.querySelectorAll('.edit-student-dash').forEach(btn => btn.addEventListener('click', () => openEditModal(btn.dataset.id)));
         document.querySelectorAll('.pay-fee-dash').forEach(btn => btn.addEventListener('click', () => markFeeAsPaid(btn.dataset.id)));
@@ -862,22 +856,19 @@
     function showToast(msg) {
         const toast = document.createElement('div');
         toast.textContent = msg;
-        toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:0.75rem 1.5rem;border-radius:2rem;z-index:2000;font-weight:500';
+        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--accent);color:white;padding:0.75rem 1.5rem;border-radius:2rem;z-index:2000;font-weight:500';
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     }
 
     function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
 
-    // Export Functions
     function exportToCSV(data, filename, headers) {
         let csv = headers.join(',') + '\n';
         data.forEach(row => {
             const rowValues = headers.map(h => {
                 let val = row[h] !== undefined ? row[h] : '';
-                if (typeof val === 'string' && (val.includes(',') || val.includes('"'))) {
-                    val = '"' + val.replace(/"/g, '""') + '"';
-                }
+                if (typeof val === 'string' && (val.includes(',') || val.includes('"'))) val = '"' + val.replace(/"/g, '""') + '"';
                 return val;
             });
             csv += rowValues.join(',') + '\n';
@@ -909,9 +900,9 @@
     function exportAttendancePDF() {
         const win = window.open();
         const date = new Date().toLocaleString();
-        let html = `<!DOCTYPE html><html><head><title>Attendance Report</title><style>body{font-family:Arial,sans-serif;margin:40px;}h1{color:#e67e22;text-align:center;}table{border-collapse:collapse;width:100%;margin-top:20px;}th,td{border:1px solid #ddd;padding:10px;text-align:left;}th{background-color:#e67e22;color:white;}</style></head><body><h1>📖 Subbulakshmi Venkatesan</h1><h2>Attendance Report</h2><p><strong>Generated on:</strong> ${date}</p><p><strong>Total Students:</strong> ${students.length}</p><p><strong>Total Attendance Records:</strong> ${attendanceRecords.length}</p><table><tr><th>Student Name</th><th>Branch</th><th>Class</th><th>Date</th><th>Status</th><th>In Time</th><th>Out Time</th></tr>`;
+        let html = `<!DOCTYPE html><html><head><title>Attendance Report</title><style>body{font-family:Arial,sans-serif;margin:40px;}h1{color:#e67e22;text-align:center;}table{border-collapse:collapse;width:100%;margin-top:20px;}th,td{border:1px solid #ddd;padding:10px;text-align:left;}th{background-color:#e67e22;color:white;}</style></head><body><h1>📖 Subbulakshmi Venkatesan</h1><h2>Attendance Report</h2><p><strong>Generated on:</strong> ${date}</p><p><strong>Total Students:</strong> ${students.length}</p><p><strong>Total Attendance Records:</strong> ${attendanceRecords.length}</p><table> hilab<th>Student Name</th><th>Branch</th><th>Class</th><th>Date</th><th>Status</th><th>In Time</th><th>Out Time</th></tr>`;
         attendanceRecords.forEach(r => { html += `<tr><td>${escapeHtml(r.studentName)}</td><td>${escapeHtml(r.branch || '—')}</td><td>${escapeHtml(r.class || '—')}</td><td>${r.date}</td><td>${r.status}</td><td>${r.inTime || '—'}</td><td>${r.outTime || '—'}</td></tr>`; });
-        html += `</table></body></html>`;
+        html += `</table><p style="text-align:center;margin-top:30px;color:#666;">Made with ❤️ by Thirulingeshwar</p></body></html>`;
         win.document.write(html);
         win.document.close();
         win.print();
@@ -923,7 +914,7 @@
         const date = new Date().toLocaleString();
         let html = `<!DOCTYPE html><html><head><title>Fee Report</title><style>body{font-family:Arial,sans-serif;margin:40px;}h1{color:#e67e22;text-align:center;}table{border-collapse:collapse;width:100%;margin-top:20px;}th,td{border:1px solid #ddd;padding:10px;text-align:left;}th{background-color:#e67e22;color:white;}.overdue{color:#ef4444;font-weight:bold;}.paid{color:#10b981;font-weight:bold;}</style></head><body><h1>📖 Subbulakshmi Venkatesan</h1><h2>Fee Management Report</h2><p><strong>Generated on:</strong> ${date}</p><p><strong>Total Students:</strong> ${students.length}</p><table><tr><th>Student Name</th><th>Branch</th><th>Phone</th><th>Fee Amount</th><th>Due Date</th><th>Payment Status</th><th>Last Paid Date</th></tr>`;
         students.forEach(s => { const feeStatus = getFeeStatus(s); const statusClass = feeStatus.status === 'overdue' ? 'overdue' : (feeStatus.status === 'paid' ? 'paid' : ''); html += `<tr><td>${escapeHtml(s.name)}</td><td>${escapeHtml(s.branch || '—')}</td><td>${escapeHtml(s.phone || '—')}</td><td>₹${s.feeAmount || 0}</td><td>${s.feeDueDay ? `${s.feeDueDay}th` : 'Not set'}</td><td class="${statusClass}">${feeStatus.message}</td><td>${s.lastFeePaidDate ? new Date(s.lastFeePaidDate).toLocaleDateString() : 'Never'}</td></tr>`; });
-        html += `</table></body></html>`;
+        html += `</table><p style="text-align:center;margin-top:30px;color:#666;">Made with ❤️ by Thirulingeshwar</p></body></html>`;
         win.document.write(html);
         win.document.close();
         win.print();
@@ -1001,30 +992,12 @@
         renderDashboardSearchResults();
     }
 
-    // Dashboard Search Event Listeners
-    document.getElementById('dashboardSearchInput')?.addEventListener('input', (e) => {
-        currentSearchTerm = e.target.value;
-        renderDashboardSearchResults();
-    });
-    document.getElementById('clearDashboardSearch')?.addEventListener('click', () => {
-        document.getElementById('dashboardSearchInput').value = '';
-        currentSearchTerm = '';
-        currentFilter = 'all';
-        document.querySelectorAll('.filter-chip').forEach(chip => chip.classList.remove('active'));
-        document.querySelector('.filter-chip[data-filter="all"]').classList.add('active');
-        renderDashboardSearchResults();
-    });
-    document.querySelectorAll('.filter-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            currentFilter = chip.dataset.filter;
-            renderDashboardSearchResults();
-        });
-    });
+    // Event Listeners
+    document.getElementById('dashboardSearchInput')?.addEventListener('input', (e) => { currentSearchTerm = e.target.value; renderDashboardSearchResults(); });
+    document.getElementById('clearDashboardSearch')?.addEventListener('click', () => { document.getElementById('dashboardSearchInput').value = ''; currentSearchTerm = ''; currentFilter = 'all'; document.querySelectorAll('.filter-chip').forEach(chip => chip.classList.remove('active')); document.querySelector('.filter-chip[data-filter="all"]').classList.add('active'); renderDashboardSearchResults(); });
+    document.querySelectorAll('.filter-chip').forEach(chip => { chip.addEventListener('click', () => { document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active')); chip.classList.add('active'); currentFilter = chip.dataset.filter; renderDashboardSearchResults(); }); });
     document.querySelector('.filter-chip[data-filter="all"]').classList.add('active');
 
-    // Export button event listeners
     document.getElementById('exportAttendanceCSV')?.addEventListener('click', exportAttendanceCSV);
     document.getElementById('exportAttendancePDF')?.addEventListener('click', exportAttendancePDF);
     document.getElementById('exportFeeCSV')?.addEventListener('click', exportFeeCSV);
@@ -1065,7 +1038,7 @@
     document.querySelector('.nav-btn[data-page="dashboard"]').click();
 
     const style = document.createElement('style');
-    style.textContent = `@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } } .empty-state { text-align: center; padding: 2rem; color: var(--text-secondary); }`;
+    style.textContent = `@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } } .empty-state { text-align: center; padding: 2rem; color: var(--text-secondary); } .branch-badge { display: inline-block; padding: 0.2rem 0.5rem; background: rgba(230,126,34,0.2); border-radius: 0.5rem; font-size: 0.7rem; margin-left: 0.5rem; color: var(--accent); }`;
     document.head.appendChild(style);
 </script>
 </body>
